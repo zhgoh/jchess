@@ -63,17 +63,37 @@ class Chess {
           break;
       }
 
-      System.out.print("Input moves e.g. A1-B2 or quit to stop the game: ");
+      System.out.print("Input instructions, for more info type help: ");
       String input = sc.nextLine();
 
-      if (input.equals("quit") || input.equals("q")) {
+      if (input.equals("help") || input.equals("?")) {
+        System.out.println("Moves can be input as from-to, e.g. A4-D7, G8-G1");
+        System.out.println("Castling can be input as 0-0 (King side), 0-0-0 (Queen side)");
+        continue;
+      }
+      else if (input.equals("quit") || input.equals("q")) {
         break;
       }
 
       // Check if valid input
       String[] moves = input.split("-");
-      if (moves.length != 2) {
-        System.out.println("Invalid input");
+
+      // For checking of castling notation 0-0 or 0-0-0
+      int zero = 0;
+      for (String elem : moves) {
+        if (elem.equals("0")) {
+          ++zero;
+        }
+      }
+
+      if (zero != moves.length && moves.length != 2) {
+          System.out.println("Invalid input");
+          continue;
+      }
+
+      if (zero > 0) {
+        //TODO: Implement castling
+        System.out.println("Castling");
         continue;
       }
 
@@ -603,7 +623,7 @@ class Rook extends Piece {
   public Location[] getMoves(Location at) {
     ArrayList<Location> arrayList = new ArrayList<>();
 
-    // Get all horizontal
+    // Horizontal left
     for (int x = at.getX() - 1; x >= 0; --x) {
       Location loc = new Location(x, at.getY());
       if (getBoard().isEmptySpace(loc)) {
@@ -617,6 +637,7 @@ class Rook extends Piece {
       }
     }
 
+    // Horizontal right
     for (int x = at.getX() + 1; x < getBoard().getWidth(); ++x) {
       Location loc = new Location(x, at.getY());
       if (getBoard().isEmptySpace(loc)) {
@@ -631,7 +652,7 @@ class Rook extends Piece {
     }
     
 
-    // Get all verticals
+    // Vertical top
     for (int y = at.getY() - 1; y >= 0; --y) {
       Location loc = new Location(at.getX(), y);
       if (getBoard().isEmptySpace(loc)) {
@@ -645,6 +666,7 @@ class Rook extends Piece {
       }
     }
 
+    // Vertical bottom
     for (int y = at.getY() + 1; y < getBoard().getHeight(); ++y) {
       Location loc = new Location(at.getX(), y);
       if (getBoard().isEmptySpace(loc)) {
@@ -677,7 +699,36 @@ class Knight extends Piece {
   }
 
   public Location[] getMoves(Location at) {
-    return new Location[0];
+    ArrayList<Location> arrayList = new ArrayList<>();
+
+    final int x = at.getX();
+    final int y = at.getY();
+
+    Location[] locations = { 
+      // Top L
+      new Location(x - 1, y - 2), 
+      new Location(x + 1, y - 2),
+
+      // Left L
+      new Location(x - 2, y - 1),
+      new Location(x - 2, y + 1),
+
+      // Right L
+      new Location(x + 2, y - 1),
+      new Location(x + 2, y + 1),
+
+      // Bottom L
+      new Location(x - 1, y + 2),
+      new Location(x + 1, y + 2) 
+    };
+
+    for (Location loc : locations) {
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      }
+    }
+
+    return arrayList.toArray(new Location[arrayList.size()]);
   }
 }
 
@@ -696,7 +747,65 @@ class Bishop extends Piece {
   }
 
   public Location[] getMoves(Location at) {
-    return new Location[0];
+    ArrayList<Location> arrayList = new ArrayList<>();
+
+    // Diagonal top left
+    for (int x = at.getX() - 1, y = at.getY() - 1; x >= 0 && y >= 0; --x, --y) {
+      Location loc = new Location(x, y);
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+
+    // Diagonal bottom right
+    for (int x = at.getX() + 1, y = at.getY() + 1; x < getBoard().getWidth() && y < getBoard().getHeight(); ++x, ++y) {
+      Location loc = new Location(x, y);
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+    
+    // Diagonal top right
+    for (int x = at.getX() + 1, y = at.getY() - 1; x < getBoard().getWidth() && y >= 0; ++x, --y) {
+      Location loc = new Location(x, y);
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+
+    // Diagonal bottom left
+    for (int x = at.getX() - 1, y = at.getY() + 1; x >= 0 && y < getBoard().getHeight(); --x, ++y) {
+      Location loc = new Location(x, y);
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+
+    return arrayList.toArray(new Location[arrayList.size()]);
   }
 }
 
@@ -715,7 +824,121 @@ class Queen extends Piece {
   }
 
   public Location[] getMoves(Location at) {
-    return new Location[0];
+    ArrayList<Location> arrayList = new ArrayList<>();
+
+    // Diagonal top left
+    for (int x = at.getX() - 1, y = at.getY() - 1; x >= 0 && y >= 0; --x, --y) {
+      Location loc = new Location(x, y);
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+
+    // Diagonal bottom right
+    for (int x = at.getX() + 1, y = at.getY() + 1; x < getBoard().getWidth() && y < getBoard().getHeight(); ++x, ++y) {
+      Location loc = new Location(x, y);
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+    
+    // Diagonal top right
+    for (int x = at.getX() + 1, y = at.getY() - 1; x < getBoard().getWidth() && y >= 0; ++x, --y) {
+      Location loc = new Location(x, y);
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+
+    // Diagonal bottom left
+    for (int x = at.getX() - 1, y = at.getY() + 1; x >= 0 && y < getBoard().getHeight(); --x, ++y) {
+      Location loc = new Location(x, y);
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+
+    // Horizontal left
+    for (int x = at.getX() - 1; x >= 0; --x) {
+      Location loc = new Location(x, at.getY());
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+
+    // Horizontal right
+    for (int x = at.getX() + 1; x < getBoard().getWidth(); ++x) {
+      Location loc = new Location(x, at.getY());
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+    
+
+    // Vertical top
+    for (int y = at.getY() - 1; y >= 0; --y) {
+      Location loc = new Location(at.getX(), y);
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+
+    // Vertical bottom
+    for (int y = at.getY() + 1; y < getBoard().getHeight(); ++y) {
+      Location loc = new Location(at.getX(), y);
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      } else {
+        Piece piece = getBoard().getPiece(loc);
+        if (isEnemy(piece)) {
+          arrayList.add(loc);
+        }
+        break;
+      }
+    }
+    return arrayList.toArray(new Location[arrayList.size()]);
   }
 }
 
@@ -739,7 +962,45 @@ class King extends Piece {
   }
 
   public Location[] getMoves(Location at) {
-    return new Location[0];
+    ArrayList<Location> arrayList = new ArrayList<>();
+
+    final int x = at.getX();
+    final int y = at.getY();
+
+    Location[] locations = { 
+      // Top left
+      new Location(x - 1, y - 1), 
+
+      // Top 
+      new Location(x, y - 1),
+
+      // Top right
+      new Location(x + 1, y - 1),
+
+      // Left
+      new Location(x - 1, y),
+
+      // Right
+      new Location(x + 1, y),
+
+      // Bottom left
+      new Location(x - 1, y + 1),
+
+      // Bottom
+      new Location(x, y + 1),
+
+      // Bottom right
+      new Location(x + 1, y + 1),
+    };
+
+    for (Location loc : locations) {
+      //TODO: Check if any of this spaces are in check
+      if (getBoard().isEmptySpace(loc)) {
+        arrayList.add(loc);
+      }
+    }
+
+    return arrayList.toArray(new Location[arrayList.size()]);
   }
 }
 
