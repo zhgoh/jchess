@@ -91,10 +91,42 @@ class Chess {
           continue;
       }
 
-      if (zero > 0) {
-        //TODO: Implement castling
-        System.out.println("Castling");
+      //TODO: Implement castling
+      if (zero == 2) {
+        // King side castle
+
+        // Check if piece can move according to rule
+        if (turn == COLOR.WHITE) {
+          Location rookLoc = new Location(7, 7);
+          Location kingLoc = new Location(4, 7);
+
+          Piece king = board.getPiece(kingLoc);
+          Piece rook = board.getPiece(rookLoc);
+
+          Location newRookLoc = new Location(5, 7);
+          Location newKingLoc = new Location(6, 7);
+
+          Piece newKing = board.getPiece(newKingLoc);
+          Piece newRook = board.getPiece(newRookLoc);
+
+          if (newKing.getType() == PIECE_TYPE.BLACK_SQUARE &&
+              newRook.getType() == PIECE_TYPE.WHITE_SQUARE &&
+              king != null && !king.moved() && 
+              rook != null && !rook.moved()) {
+            board.setPiece(new King(turn, board), newKingLoc);
+            board.setPiece(new Rook(turn, board), newRookLoc);
+            Game.clearScreen();
+            changeTurn();
+            board.draw();
+          }
+
+        } else if (turn == COLOR.BLACK) {
+          Piece king = board.getPiece(new Location(5, 1));
+        }
         continue;
+      } else if (zero == 3) {
+        continue;
+      } else {
       }
 
       // Check if valid moves
@@ -102,6 +134,8 @@ class Chess {
       Location to = board.translateMove(moves[1]);
     
       if (from != null && to != null) {
+        System.out.println(from);
+        System.out.println(to);
         // Move pieces
         if (board.movePiece(turn, from, to)) {
           Game.clearScreen();
@@ -301,7 +335,7 @@ class Board {
       if (piece.getColor() != turn) {
         System.out.println("Not your turn yet!");
 
-        //TODO: Disabled for now
+        // TODO: Not implemented for now
         // return false;
       }
 
@@ -328,6 +362,7 @@ class Board {
               }
             }
 
+            piece.movePiece();
             setPiece(piece, to);
             return true;
           }
@@ -483,9 +518,11 @@ abstract class Piece {
   private char icon;
   private COLOR color;
   private Board board;
+  private boolean hasMoved;
 
   public Piece(Board board) {
     this.board = board;
+    hasMoved = false;
   }
 
   abstract public Location[] getMoves(Location at);
@@ -514,6 +551,14 @@ abstract class Piece {
 
   public boolean isEnemy(Piece piece) {
     return color != piece.color;
+  }
+
+  public void movePiece() {
+    hasMoved = true;
+  }
+
+  public boolean moved() {
+    return hasMoved;
   }
 }
 
@@ -603,12 +648,8 @@ class Pawn extends Piece {
 }
 
 class Rook extends Piece {
-  // For castling
-  private boolean hasMoved;
   public Rook(COLOR color, Board board) {
     super(board);
-
-    hasMoved = false;
 
     switch (color) {
       case BLACK:
@@ -943,13 +984,8 @@ class Queen extends Piece {
 }
 
 class King extends Piece {
-  // For castling
-  private boolean hasMoved;
-
   public King(COLOR color, Board board) {
     super(board);
-
-    hasMoved = false;
 
     switch (color) {
       case BLACK:
