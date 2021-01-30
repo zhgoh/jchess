@@ -8,6 +8,8 @@ follow the algebra notation for chess moves.
 I coded this game for one of my tuition class projects.
 
 ### Visuals
+
+```
 ╔═╤═╤═╤═╤═╤═╤═╤═╗╮
 ║♜│♞│♝│♛│♚│♝│♞│♜║8
 ╟─┼─┼─┼─┼─┼─┼─┼─╢┊
@@ -26,3 +28,4 @@ I coded this game for one of my tuition class projects.
 ║♖│♘│♗│♕│♔│♗│♘│♖║1
 ╚═╧═╧═╧═╧═╧═╧═╧═╝┊
 ╰a┈b┈c┈d┈e┈f┈g┈h┈╯
+```

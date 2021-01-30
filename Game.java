@@ -1,8 +1,6 @@
 import java.util.Scanner;
 import java.util.Objects;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class Game {
   public static void main(String[] args) {
@@ -41,78 +39,60 @@ public class Game {
           break;
       }
 
-      System.out.print("Input instructions, for more info type help: ");
+      System.out.print("Input move: ");
       String input = sc.nextLine();
 
-      if (input.equals("help") || input.equals("?")) {
-        System.out.println("Moves can be input as from-to, e.g. A4-D7, G8-G1");
-        System.out.println("Castling can be input as 0-0 (King side), 0-0-0 (Queen side)");
+      if (input.equals("help") || input.equals("h") || input.equals("?")) {
+        System.out.println("List of commands: (e)nd, (h)elp, (q)uit");
+        System.out.println("Input:            A1-B2 (to move from A1-B2)");
+        System.out.println("Castle:           0-0 (King side), 0-0-0 (Queen side).");
+        System.out.println("End:              End current turn.");
+        System.out.println("Help:             Show this help message.");
+        System.out.println("Quit:             Quit the chess app.");
         continue;
       }
       else if (input.equals("quit") || input.equals("q")) {
         break;
+      } else if (input.equals("end") || input.equals("e")) {
+        endTurn();
+        continue;
       }
 
       // Check if valid input
       String[] moves = input.split("-");
 
-      //// For checking of castling notation 0-0 or 0-0-0
-      //int zero = 0;
-      //for (String elem : moves) {
-      //  if (elem.equals("0")) {
-      //    ++zero;
-      //  }
-      //}
+      // For checking of castling notation 0-0 or 0-0-0
+      int zero = 0;
+      for (String elem : moves) {
+        if (elem.equals("0")) {
+          ++zero;
+        }
+      }
 
-      //if (zero != moves.length && moves.length != 2) {
-      //  System.out.println("Invalid input");
-      //  continue;
-      //}
+      // if (zero != moves.length && moves.length != 2) {
+      //   System.out.println("Invalid input, type help to learn more.");
+      //   continue;
+      // }
 
-      ////TODO: Implement castling
-      //if (zero == 2) {
-      //  // King side castle
+      if (zero == 2 || zero == 3) {
+        if (!board.castle(turn, zero == 2 ? CASTLE.KING : CASTLE.QUEEN)) {
+          continue;
+        }
+      } else {
+        if (moves.length < 2) {
+          System.out.println("Invalid input, type help to learn more.");
+          continue;
+        }
 
-      //  // Check if piece can move according to rule
-      //  if (turn == COLOR.WHITE) {
-      //    Location rookLoc = new Location(7, 7);
-      //    Location kingLoc = new Location(4, 7);
+        // Check if valid moves
+        Location from = board.translateMove(moves[0]);
+        Location to = board.translateMove(moves[1]);
 
-      //    Piece king = board.getPiece(kingLoc);
-      //    Piece rook = board.getPiece(rookLoc);
+        if (from == null || to == null) {
+          System.out.println("Invalid input, type help to learn more.");
+          continue;
+        }
 
-      //    Location newRookLoc = new Location(5, 7);
-      //    Location newKingLoc = new Location(6, 7);
-
-      //    Piece newKing = board.getPiece(newKingLoc);
-      //    Piece newRook = board.getPiece(newRookLoc);
-
-      //    if (newKing.getType() == PIECE_TYPE.BLACK_SQUARE &&
-      //        newRook.getType() == PIECE_TYPE.WHITE_SQUARE &&
-      //        king != null && !king.moved() && 
-      //        rook != null && !rook.moved()) {
-      //      // TODO: Castling
-      //      //board.setPiece(new King(turn, board), newKingLoc);
-      //      //board.setPiece(new Rook(turn, board), newRookLoc);
-      //      clearScreen();
-      //      endTurn();
-      //      board.draw();
-      //    }
-
-      //  } else if (turn == COLOR.BLACK) {
-      //    Piece king = board.getPiece(new Location(5, 1));
-      //  }
-      //  continue;
-      //} else if (zero == 3) {
-      //  continue;
-      //} else {
-      //}
-
-      // Check if valid moves
-      Location from = board.translateMove(moves[0]);
-      Location to = board.translateMove(moves[1]);
-
-      if (from != null && to != null) {
         Piece piece = board.getPiece(from);
 
         if (piece == null) {
@@ -127,7 +107,6 @@ public class Game {
         } else {
           // Move pieces
           if (board.movePiece(piece, to)) {
-
             // Check for Pawn promotion
             while (true) {
               Pawn promoted = board.checkPromotion();
@@ -142,9 +121,6 @@ public class Game {
               input = sc.nextLine();
               board.promotePawn(promoted, input);
             }
-
-            clearScreen();
-            endTurn();
           } else {
             continue;
           }
@@ -161,17 +137,13 @@ public class Game {
               return;
           }
         }
-
-        // Draw board
-        // https://qwerty.dev/chess-symbols-to-copy-and-paste/
-        board.draw();
-      } else {
-        System.out.println("Invalid input!");
       }
+
+      endTurn();
     }
   }
 
-  private void endTurn() {
+private void endTurn() {
     switch (turn) {
       case WHITE:
         turn = COLOR.BLACK;
@@ -181,6 +153,11 @@ public class Game {
         turn = COLOR.WHITE;
         break;
     }
+
+    clearScreen();
+    // Draw board
+    // https://qwerty.dev/chess-symbols-to-copy-and-paste/
+    board.draw();
   }
 }
 
@@ -204,6 +181,11 @@ enum PIECE_TYPE {
 enum COLOR {
   BLACK,
   WHITE
+}
+
+enum CASTLE {
+  QUEEN, // 0-0-0
+  KING   // 0-0
 }
 
 class Board {
@@ -231,7 +213,7 @@ class Board {
       if (piece.getType() == PIECE_TYPE.BLACK_KING ||
           piece.getType() == PIECE_TYPE.WHITE_KING) {
         ++count;
-      }
+          }
     }
 
     return count == 1;
@@ -249,8 +231,8 @@ class Board {
             piece.getLocation().getY() == 0) {
           System.out.println("Pawn Promotion");
           return (Pawn)piece;
-        }
-      }
+            }
+          }
     }
 
     return null;
@@ -287,7 +269,7 @@ class Board {
               System.out.println("King is moving to checked position");
               return false;
             }
-          }
+              }
 
           Piece destination = getPiece(to);
           if (destination != null) {
@@ -334,9 +316,9 @@ class Board {
 
   public boolean isInsideBoard(Location loc) {
     return loc.getX() >= 0 &&
-           loc.getX() < 8 &&
-           loc.getY() >= 0 &&
-           loc.getY() < 8;
+      loc.getX() < 8 &&
+      loc.getY() >= 0 &&
+      loc.getY() < 8;
   }
 
   public void draw() {
@@ -428,6 +410,7 @@ class Board {
 
         if (y == 0) {
           if (x == 0 || x == 7) {
+            int r = (x == 0) ? 0 : 1;
             pieces[id++] = new Rook(COLOR.BLACK, this, loc);
           } else if (x == 1 || x == 6) {
             pieces[id++] = new Knight(COLOR.BLACK, this, loc);
@@ -444,6 +427,7 @@ class Board {
           pieces[id++] = new Pawn(COLOR.WHITE, this, -1, loc);
         } else if (y == 7) {
           if (x == 0 || x == 7) {
+            int r = (x == 0) ? 0 : 1;
             pieces[id++] = new Rook(COLOR.WHITE, this, loc);
           } else if (x == 1 || x == 6) {
             pieces[id++] = new Knight(COLOR.WHITE, this, loc);
@@ -573,6 +557,112 @@ class Board {
     }
     return false;
   }
+
+  private Piece getPieceBy(COLOR color, PIECE_TYPE type) {
+    for (Piece piece : pieces)  {
+      if (piece == null) {
+        continue;
+      }
+
+      if (piece.getColor() == color && piece.getType() == type) {
+        return piece;
+      }
+    }
+    return null;
+  }
+
+  public boolean castle(COLOR color, CASTLE side) {
+    System.out.println("Castle");
+
+    Location kingLoc = null;
+    Location rookLoc = null;
+    Location newKingSideLoc = null;
+    Location newKingLoc = null;
+    Location newRookLoc = null;
+
+    switch (color) {
+      case BLACK:
+        kingLoc = new Location(4, 0);
+
+        switch (side) {
+          case KING:
+            // King side
+            rookLoc = new Location(7, 0);
+            newKingLoc = new Location(6, 0);
+            newRookLoc = new Location(5, 0);
+            newKingSideLoc = new Location(5, 0);
+            break;
+
+          case QUEEN:
+            // Queen side
+            rookLoc = new Location(0, 0);
+            newKingLoc = new Location(2, 0);
+            newRookLoc = new Location(3, 0);
+            newKingSideLoc = new Location(3, 0);
+            break;
+        }
+
+        break;
+
+      case WHITE:
+        kingLoc = new Location(4, 7);
+
+        switch (side) {
+          case KING:
+            // King side
+            rookLoc = new Location(7, 7);
+            newKingLoc = new Location(6, 7);
+            newRookLoc = new Location(5, 7);
+            newKingSideLoc = new Location(3, 7);
+            break;
+
+          case QUEEN:
+            // Queen side
+            rookLoc = new Location(0, 7);
+            newKingLoc = new Location(2, 7);
+            newRookLoc = new Location(3, 7);
+            newKingSideLoc = new Location(3, 7);
+            break;
+        }
+        break;
+    }
+
+    if (kingLoc != null && rookLoc != null && newKingLoc != null && newRookLoc != null && newKingSideLoc != null) {
+      if (!isEmptySpace(newKingLoc) || !isEmptySpace(newRookLoc)) {
+        System.out.println("King or Rook space is occupied");
+        return false;
+      }
+
+      Piece king = getPiece(kingLoc);
+      Piece rook = getPiece(rookLoc);
+
+      if (king != null && rook != null) {
+        // 1. Check if moved before
+        if (king.moved() || rook.moved()) {
+          System.out.println("King or Rook have been moved!");
+          return false;
+        }
+
+        // 2. Check if king is not in checks
+        if (isCheck(king.getColor(), kingLoc)) {
+          System.out.println("King is in checks!");
+          return false;
+        }
+
+        // 3. Check if spaces are in checks
+        if (isCheck(king.getColor(), newKingLoc) || isCheck(king.getColor(), newKingSideLoc)) {
+          System.out.println("Spaces is in checks for castling!");
+          return false;
+        }
+
+
+        king.move(newKingLoc);
+        rook.move(newRookLoc);
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 
@@ -676,7 +766,7 @@ class Pawn extends Piece {
         if (getBoard().isEmptySpace(frontLoc) && getBoard().isEmptySpace(frontTwoLoc)) {
           arrayList.add(frontTwoLoc);
         }
-      }
+          }
     }
 
     {
@@ -846,7 +936,7 @@ class Bishop extends Piece {
 
   public Location[] getMoves(boolean moving) {
     ArrayList<Location> arrayList = new ArrayList<>();
-    
+
     final Location at = getLocation();
 
     // Diagonal top left
