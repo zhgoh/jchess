@@ -1,53 +1,31 @@
 import java.util.Scanner;
 import java.util.Objects;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Game {
   public static void main(String[] args) {
-    Chess chess = new Chess();
-    chess.play();
+    Game game = new Game();
+    game.play();
   }
 
-  public static void clearScreen() {  
+  private void clearScreen() {  
     System.out.print("\033[H\033[2J");  
     System.out.flush();  
   }  
-}
 
-enum PIECE_TYPE {
-  BLACK_SQUARE,
-  WHITE_SQUARE,
-  BLACK_PAWN,
-  WHITE_PAWN,
-  BLACK_ROOK,
-  WHITE_ROOK,
-  BLACK_KNIGHT,
-  WHITE_KNIGHT,
-  BLACK_BISHOP,
-  WHITE_BISHOP,
-  BLACK_QUEEN,
-  WHITE_QUEEN,
-  BLACK_KING,
-  WHITE_KING
-}
-
-enum COLOR {
-  BLACK,
-  WHITE
-}
-
-class Chess {
   private Board board;
   private COLOR turn;
 
-  public Chess() {
+  public Game() {
     // Init board
-    board = new Board(8, 8);
+    board = new Board();
     turn = COLOR.WHITE;
   }
 
   public void play() {
-    Game.clearScreen();
+    clearScreen();
     board.draw();
 
     Scanner sc = new Scanner(System.in);
@@ -78,109 +56,98 @@ class Chess {
       // Check if valid input
       String[] moves = input.split("-");
 
-      // For checking of castling notation 0-0 or 0-0-0
-      int zero = 0;
-      for (String elem : moves) {
-        if (elem.equals("0")) {
-          ++zero;
-        }
-      }
+      //// For checking of castling notation 0-0 or 0-0-0
+      //int zero = 0;
+      //for (String elem : moves) {
+      //  if (elem.equals("0")) {
+      //    ++zero;
+      //  }
+      //}
 
-      if (zero != moves.length && moves.length != 2) {
-          System.out.println("Invalid input");
-          continue;
-      }
+      //if (zero != moves.length && moves.length != 2) {
+      //  System.out.println("Invalid input");
+      //  continue;
+      //}
 
-      //TODO: Implement castling
-      if (zero == 2) {
-        // King side castle
+      ////TODO: Implement castling
+      //if (zero == 2) {
+      //  // King side castle
 
-        // Check if piece can move according to rule
-        if (turn == COLOR.WHITE) {
-          Location rookLoc = new Location(7, 7);
-          Location kingLoc = new Location(4, 7);
+      //  // Check if piece can move according to rule
+      //  if (turn == COLOR.WHITE) {
+      //    Location rookLoc = new Location(7, 7);
+      //    Location kingLoc = new Location(4, 7);
 
-          Piece king = board.getPiece(kingLoc);
-          Piece rook = board.getPiece(rookLoc);
+      //    Piece king = board.getPiece(kingLoc);
+      //    Piece rook = board.getPiece(rookLoc);
 
-          Location newRookLoc = new Location(5, 7);
-          Location newKingLoc = new Location(6, 7);
+      //    Location newRookLoc = new Location(5, 7);
+      //    Location newKingLoc = new Location(6, 7);
 
-          Piece newKing = board.getPiece(newKingLoc);
-          Piece newRook = board.getPiece(newRookLoc);
+      //    Piece newKing = board.getPiece(newKingLoc);
+      //    Piece newRook = board.getPiece(newRookLoc);
 
-          if (newKing.getType() == PIECE_TYPE.BLACK_SQUARE &&
-              newRook.getType() == PIECE_TYPE.WHITE_SQUARE &&
-              king != null && !king.moved() && 
-              rook != null && !rook.moved()) {
-            board.setPiece(new King(turn, board), newKingLoc);
-            board.setPiece(new Rook(turn, board), newRookLoc);
-            Game.clearScreen();
-            changeTurn();
-            board.draw();
-          }
+      //    if (newKing.getType() == PIECE_TYPE.BLACK_SQUARE &&
+      //        newRook.getType() == PIECE_TYPE.WHITE_SQUARE &&
+      //        king != null && !king.moved() && 
+      //        rook != null && !rook.moved()) {
+      //      // TODO: Castling
+      //      //board.setPiece(new King(turn, board), newKingLoc);
+      //      //board.setPiece(new Rook(turn, board), newRookLoc);
+      //      clearScreen();
+      //      endTurn();
+      //      board.draw();
+      //    }
 
-        } else if (turn == COLOR.BLACK) {
-          Piece king = board.getPiece(new Location(5, 1));
-        }
-        continue;
-      } else if (zero == 3) {
-        continue;
-      } else {
-      }
+      //  } else if (turn == COLOR.BLACK) {
+      //    Piece king = board.getPiece(new Location(5, 1));
+      //  }
+      //  continue;
+      //} else if (zero == 3) {
+      //  continue;
+      //} else {
+      //}
 
       // Check if valid moves
       Location from = board.translateMove(moves[0]);
       Location to = board.translateMove(moves[1]);
-    
+
       if (from != null && to != null) {
-        System.out.println(from);
-        System.out.println(to);
-        // Move pieces
-        if (board.movePiece(turn, from, to)) {
-          Game.clearScreen();
+        Piece piece = board.getPiece(from);
 
-          changeTurn();
-
-          // Check for Pawn promotion
-          Location promotedLoc = board.checkPromotion();
-          while (promotedLoc != null) {
-            System.out.println("Pawn promotion, you can choose one of the following");
-            System.out.print("[q]ueen,[b]ishop, [k]night, [r]ook: ");
-
-            input = sc.nextLine();
-            switch (input) {
-              case "q":
-              case "queen":
-                board.setPiece(new Queen(turn, board), promotedLoc);
-                promotedLoc = null;
-                break;
-
-              case "b":
-              case "bishop":
-                board.setPiece(new Bishop(turn, board), promotedLoc);
-                promotedLoc = null;
-                break;
-
-              case "k":
-              case "knight":
-                board.setPiece(new Knight(turn, board), promotedLoc);
-                promotedLoc = null;
-                break;
-
-              case "r":
-              case "rook":
-                board.setPiece(new Rook(turn, board), promotedLoc);
-                promotedLoc = null;
-                break;
-
-              default:
-                System.out.println("Wrong key detected, type q for queen, b for bishop, k for knight, r for rook");
-                break;
-            }
-          }
-        } else {
+        if (piece == null) {
+          // Check if piece we are moving is a blank piece
+          System.out.println("Not a valid piece!");
           continue;
+        }
+
+        if (piece.getColor() != turn) {
+          System.out.println("Not your turn yet!");
+          continue;
+        } else {
+          // Move pieces
+          if (board.movePiece(piece, to)) {
+
+            // Check for Pawn promotion
+            while (true) {
+              Pawn promoted = board.checkPromotion();
+
+              if (promoted == null) {
+                break;
+              }
+
+              System.out.println("you can choose one of the following");
+              System.out.print("[q]ueen,[b]ishop, [k]night, [r]ook: ");
+
+              input = sc.nextLine();
+              board.promotePawn(promoted, input);
+            }
+
+            clearScreen();
+            endTurn();
+          } else {
+            continue;
+          }
         }
 
         if (board.hasWinner()) {
@@ -204,7 +171,7 @@ class Chess {
     }
   }
 
-  private void changeTurn() {
+  private void endTurn() {
     switch (turn) {
       case WHITE:
         turn = COLOR.BLACK;
@@ -217,69 +184,50 @@ class Chess {
   }
 }
 
+enum PIECE_TYPE {
+  BLACK_SQUARE,
+  WHITE_SQUARE,
+  BLACK_PAWN,
+  WHITE_PAWN,
+  BLACK_ROOK,
+  WHITE_ROOK,
+  BLACK_KNIGHT,
+  WHITE_KNIGHT,
+  BLACK_BISHOP,
+  WHITE_BISHOP,
+  BLACK_QUEEN,
+  WHITE_QUEEN,
+  BLACK_KING,
+  WHITE_KING
+}
+
+enum COLOR {
+  BLACK,
+  WHITE
+}
+
 class Board {
-  private int width;
-  private int height;
-  private Piece[] boards;
+  private Piece[] pieces;
+  private char[] boards;
 
-  public Board(int w, int h) {
-    width = w;
-    height = h;
+  private char WHITE = ' ';
+  private char BLACK = '░';
 
-    boards = new Piece[w * h];
+  public Board() {
+    boards = new char[64];
 
-    for (int y = 0; y < h; ++y) {
-      for (int x = 0; x < w; ++x) {
-        if (y == 0) {
-          if (x == 0 || x == (w - 1)) {
-            boards[y * h + x] = new Rook(COLOR.BLACK, this);
-          } else if (x == 1 || x == (w - 2)) {
-            boards[y * h + x] = new Knight(COLOR.BLACK, this);
-          } else if (x == 2 || x == (w - 3)) {
-            boards[y * h + x] = new Bishop(COLOR.BLACK, this);
-          } else if (x == 3) {
-            boards[y * h + x] = new Queen(COLOR.BLACK, this);
-          } else if (x == 4) {
-            boards[y * h + x] = new King(COLOR.BLACK, this);
-          }
-        } else if (y == 1) {
-          boards[y * h + x] = new Pawn(COLOR.BLACK, this, 1);
-        } else if (y == 6) {
-          boards[y * h + x] = new Pawn(COLOR.WHITE, this, -1);
-        } else if (y == 7) {
-          if (x == 0 || x == (w - 1)) {
-            boards[y * h + x] = new Rook(COLOR.WHITE, this);
-          } else if (x == 1 || x == (w - 2)) {
-            boards[y * h + x] = new Knight(COLOR.WHITE, this);
-          } else if (x == 2 || x == (w - 3)) {
-            boards[y * h + x] = new Bishop(COLOR.WHITE, this);
-          } else if (x == 3) {
-            boards[y * h + x] = new Queen(COLOR.WHITE, this);
-          } else if (x == 4) {
-            boards[y * h + x] = new King(COLOR.WHITE, this);
-          }
-        } else {
-          if (x % 2 == 0) {
-            if (y % 2 == 0) {
-              boards[y * h + x] = new Squares(COLOR.WHITE, this);
-            } else {
-              boards[y * h + x] = new Squares(COLOR.BLACK, this);
-            }
-          } else {
-            if (y % 2 == 1) {
-              boards[y * h + x] = new Squares(COLOR.WHITE, this);
-            } else {
-              boards[y * h + x] = new Squares(COLOR.BLACK, this);
-            }
-          }
-        }
-      }
-    }
+    initPieces();
+    fillBoards();
+    fillPieces();
   }
 
   public boolean hasWinner() {
     int count = 0;
-    for (Piece piece : boards) {
+    for (Piece piece : pieces) {
+      if (piece == null) {
+        continue;
+      }
+
       if (piece.getType() == PIECE_TYPE.BLACK_KING ||
           piece.getType() == PIECE_TYPE.WHITE_KING) {
         ++count;
@@ -289,25 +237,31 @@ class Board {
     return count == 1;
   }
 
-  public Location checkPromotion() {
-    // Check only top and bottom row
-    for (int y = 0; y < height; y += (height - 1)) {
-      for (int x = 0; x < width; ++x) {
-        Piece piece = boards[y * height + x];
-        if (piece != null) {
-          if (piece.getType() == PIECE_TYPE.BLACK_PAWN ||
-              piece.getType() == PIECE_TYPE.WHITE_PAWN) {
+  public Pawn checkPromotion() {
+    for (Piece piece : pieces) {
+      if (piece == null) {
+        continue;
+      }
 
-            System.out.println("Promotion");
-            return new Location(x, y);
-          }
+      if (piece.getType() == PIECE_TYPE.BLACK_PAWN || 
+          piece.getType() == PIECE_TYPE.WHITE_PAWN) {
+        if (piece.getLocation().getY() == 8 ||
+            piece.getLocation().getY() == 0) {
+          System.out.println("Pawn Promotion");
+          return (Pawn)piece;
         }
       }
     }
+
     return null;
   }
 
-  public boolean movePiece(COLOR turn, Location from, Location to) {
+  public boolean movePiece(Piece piece, Location to) {
+    if (piece == null) {
+      return false;
+    }
+
+    final Location from = piece.getLocation();
 
     // Check if from and to is the same
     if (from.equals(to)) {
@@ -321,51 +275,26 @@ class Board {
       return false;
     }
 
-    // Check if piece we are moving is a blank piece
-    if (isEmptySpace(from)) {
-      System.out.println("Must select a valid piece!");
-      return false;
-    }
-
     // Check if piece can move according to rule
-    Piece piece = getPiece(from);
-
-    if (piece != null) {
-      // Check if valid player's turn
-      if (piece.getColor() != turn) {
-        System.out.println("Not your turn yet!");
-
-        // TODO: Not implemented for now
-        // return false;
-      }
-
-      Location[] locations = piece.getMoves(from);
-      if (locations != null) {
-        for (Location loc : locations) {
-          if (loc.equals(to)) {
-
-            // Update the board's white/black box
-            final int x = from.getX();
-            final int y = from.getY();
-
-            if (x % 2 == 0) {
-              if (y % 2 == 0) {
-                setPiece(new Squares(COLOR.WHITE, this), x, y);
-              } else {
-                setPiece(new Squares(COLOR.BLACK, this), x, y);
-              }
-            } else {
-              if (y % 2 == 1) {
-                setPiece(new Squares(COLOR.WHITE, this), x, y);
-              } else {
-                setPiece(new Squares(COLOR.BLACK, this), x, y);
-              }
+    Location[] locations = piece.getMoves(true);
+    if (locations != null) {
+      for (Location loc : locations) {
+        if (loc.equals(to)) {
+          // If piece is king, check if destination is in check
+          if (piece.getType() == PIECE_TYPE.BLACK_KING ||
+              piece.getType() == PIECE_TYPE.WHITE_KING) {
+            if (isCheck(piece.getColor(), to)) {
+              System.out.println("King is moving to checked position");
+              return false;
             }
-
-            piece.movePiece();
-            setPiece(piece, to);
-            return true;
           }
+
+          Piece destination = getPiece(to);
+          if (destination != null) {
+            removePiece(destination);
+          }
+          piece.move(to);
+          return true;
         }
       }
     }
@@ -375,26 +304,18 @@ class Board {
   }
 
   public Piece getPiece(Location loc) {
-    return getPiece(loc.getX(), loc.getY());
-  }
+    if (isInsideBoard(loc)) {
+      for (Piece piece : pieces) {
+        if (piece == null) {
+          continue;
+        }
 
-  public Piece getPiece(int x, int y) {
-    if (isInsideBoard(x, y)) {
-      return boards[y * height + x];
-    }
-    return null;
-  }
-
-  public void setPiece(Piece piece, Location loc) {
-    if (piece != null && loc != null) {
-      if (isInsideBoard(loc)) {
-        boards[loc.getY() * height + loc.getX()] = piece;
+        if (piece.getLocation().equals(loc)) {
+          return piece;
+        }
       }
     }
-  }
-
-  private void setPiece(Piece piece, int x, int y) {
-    setPiece(piece, new Location(x, y));
+    return null;
   }
 
   public Location translateMove(String input) {
@@ -404,7 +325,7 @@ class Board {
         if (Character.isDigit(input.charAt(1))) {
           final int x = input.charAt(0) - 'A';
           final int y = input.charAt(1) - '1';
-          return new Location(x, height - y - 1);
+          return new Location(x, 7 - y);
         }
       }
     }
@@ -412,20 +333,18 @@ class Board {
   }
 
   public boolean isInsideBoard(Location loc) {
-    return isInsideBoard(loc.getX(), loc.getY());
-  }
-
-  public boolean isInsideBoard(int x, int y) {
-    return x >= 0 &&
-           x < width &&
-           y >= 0 &&
-           y < height;
+    return loc.getX() >= 0 &&
+           loc.getX() < 8 &&
+           loc.getY() >= 0 &&
+           loc.getY() < 8;
   }
 
   public void draw() {
+    fillBoards();
+    fillPieces();
 
-    final int bh = (height * 2) + 1;
-    final int bw = (width * 2) + 1;
+    final int bh = 17;
+    final int bw = 17;
 
     for (int y = 0, id = 0, index = 8; y < bh; ++y) {
       for (int x = 0; x < bw; ++x) {
@@ -479,7 +398,7 @@ class Board {
                 System.out.print("│");
               } else {
                 // Draw pieces
-                System.out.print(boards[id].getIcon());
+                System.out.print(boards[id]);
                 ++id;
               }
             }
@@ -492,26 +411,170 @@ class Board {
   }
 
   public boolean isEmptySpace(Location at) {
-    return isEmptySpace(at.getX(), at.getY());
-  }
-
-  public boolean isEmptySpace(int x, int y) {
-    Piece piece = getPiece(x, y);
-    if (piece != null) {
-      return piece.getType() == PIECE_TYPE.BLACK_SQUARE || 
-             piece.getType() == PIECE_TYPE.WHITE_SQUARE;
+    if (isInsideBoard(at)) {
+      char board = boards[at.getY() * 8 + at.getX()];
+      return board == WHITE || board == BLACK;
     }
     return false;
   }
 
-  public int getWidth() {
-    return width;
+  private void initPieces() {
+    pieces = new Piece[32];
+
+    int id = 0;
+    for (int y = 0; y < 8; ++y) {
+      for (int x = 0; x < 8; ++x) {
+        Location loc = new Location(x, y);
+
+        if (y == 0) {
+          if (x == 0 || x == 7) {
+            pieces[id++] = new Rook(COLOR.BLACK, this, loc);
+          } else if (x == 1 || x == 6) {
+            pieces[id++] = new Knight(COLOR.BLACK, this, loc);
+          } else if (x == 2 || x == 5) {
+            pieces[id++] = new Bishop(COLOR.BLACK, this, loc);
+          } else if (x == 3) {
+            pieces[id++] = new Queen(COLOR.BLACK, this, loc);
+          } else if (x == 4) {
+            pieces[id++] = new King(COLOR.BLACK, this, loc);
+          }
+        } else if (y == 1) {
+          pieces[id++] = new Pawn(COLOR.BLACK, this, 1, loc);
+        } else if (y == 6) {
+          pieces[id++] = new Pawn(COLOR.WHITE, this, -1, loc);
+        } else if (y == 7) {
+          if (x == 0 || x == 7) {
+            pieces[id++] = new Rook(COLOR.WHITE, this, loc);
+          } else if (x == 1 || x == 6) {
+            pieces[id++] = new Knight(COLOR.WHITE, this, loc);
+          } else if (x == 2 || x == 5) {
+            pieces[id++] = new Bishop(COLOR.WHITE, this, loc);
+          } else if (x == 3) {
+            pieces[id++] = new Queen(COLOR.WHITE, this, loc);
+          } else if (x == 4) {
+            pieces[id++] = new King(COLOR.WHITE, this, loc);
+          }
+        }
+      }
+    }
   }
 
-  public int getHeight() {
-    return height;
+  private void fillBoards() {
+    for (int y = 0; y < 8; ++y) {
+      for (int x = 0; x < 8; ++x) {
+        if (x % 2 == 0) {
+          if (y % 2 == 0) {
+            boards[y * 8 + x] = WHITE;
+          } else {
+            boards[y * 8 + x] = BLACK;
+          }
+        } else {
+          if (y % 2 == 1) {
+            boards[y * 8 + x] = WHITE;
+          } else {
+            boards[y * 8 + x] = BLACK;
+          }
+        }
+      }
+    }
+  }
+
+  private void fillPieces() {
+    for (int i = 0; i < pieces.length; ++i) {
+      Piece piece = pieces[i];
+      if (piece != null) {
+        Location loc = piece.getLocation();
+        if (loc != null) {
+          boards[loc.getY() * 8 + loc.getX()] = piece.getIcon();
+        }
+      }
+    }
+  }
+
+  public boolean promotePawn(Pawn pawn, String input) {
+    if (pawn == null)
+      return false;
+
+    final Location loc = pawn.getLocation();
+    final COLOR color = pawn.getColor();
+
+    switch (input) {
+      case "q":
+      case "queen":
+        replacePiece(pawn, new Queen(color, this, loc));
+        return true;
+
+      case "b":
+      case "bishop":
+        replacePiece(pawn, new Bishop(color, this, loc));
+        return true;
+
+      case "k":
+      case "knight":
+        replacePiece(pawn, new Knight(color, this, loc));
+        return true;
+
+      case "r":
+      case "rook":
+        replacePiece(pawn, new Rook(color, this, loc));
+        return true;
+
+      default:
+        System.out.println("Wrong key detected, type q for queen, b for bishop, k for knight, r for rook");
+        return false;
+    }
+  }
+
+  private void replacePiece(Piece oldPiece, Piece newPiece) {
+    if (oldPiece == null || newPiece == null) {
+      return;
+    }
+
+    for (int i = 0; i < pieces.length; ++i) {
+      if (pieces[i] == null) {
+        continue;
+      }
+
+      if (pieces[i].equals(oldPiece)) {
+        pieces[i] = newPiece;
+      }
+    }
+  }
+
+  private void removePiece(Piece toRemove) {
+    for (int i = 0; i < pieces.length; ++i) {
+      Piece piece = pieces[i];
+      if (piece == null) {
+        continue;
+      }
+
+      if (piece.equals(toRemove)) {
+        pieces[i] = null;
+        return;
+      }
+    }
+  }
+
+  public boolean isCheck(COLOR color, Location loc) {
+    for (Piece piece : pieces) {
+      if (piece == null) {
+        continue;
+      }
+
+      if (piece.getColor() == color) {
+        continue;
+      }
+
+      for (Location move : piece.getMoves(false)) {
+        if (loc.equals(move)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
+
 
 abstract class Piece {
   private PIECE_TYPE type;
@@ -519,13 +582,20 @@ abstract class Piece {
   private COLOR color;
   private Board board;
   private boolean hasMoved;
+  private Location location;
 
-  public Piece(Board board) {
+  public Piece(Board board, Location loc) {
     this.board = board;
+    this.location = loc;
     hasMoved = false;
   }
 
-  abstract public Location[] getMoves(Location at);
+  abstract public Location[] getMoves(boolean moving);
+
+  public void move(Location loc) {
+    location = loc;
+    hasMoved = true;
+  }
 
   public PIECE_TYPE getType() {
     return type;
@@ -543,6 +613,10 @@ abstract class Piece {
     return board;
   }
 
+  public Location getLocation() {
+    return location;
+  }
+
   public void set(PIECE_TYPE type, char icon, COLOR color) {
     this.type = type;
     this.icon = icon;
@@ -553,39 +627,16 @@ abstract class Piece {
     return color != piece.color;
   }
 
-  public void movePiece() {
-    hasMoved = true;
-  }
-
   public boolean moved() {
     return hasMoved;
-  }
-}
-
-class Squares extends Piece {
-  public Squares(COLOR color, Board board) {
-    super(board);
-
-    switch (color) {
-      case BLACK:
-        set(PIECE_TYPE.BLACK_SQUARE, '░', COLOR.BLACK);
-        break;
-      case WHITE:
-        set(PIECE_TYPE.WHITE_SQUARE, ' ', COLOR.WHITE);
-        break;
-    }
-  }
-
-  public Location[] getMoves(Location at) {
-    return new Location[0];
   }
 }
 
 class Pawn extends Piece {
   private int dir;
 
-  public Pawn(COLOR color, Board board, int dir) {
-    super(board);
+  public Pawn(COLOR color, Board board, int dir, Location loc) {
+    super(board, loc);
 
     switch (color) {
       case BLACK:
@@ -600,17 +651,19 @@ class Pawn extends Piece {
   }
 
   private boolean hasDiagonal(Location at) {
-      Piece piece = getBoard().getPiece(at);
-      if (piece != null && 
-          isEnemy(piece) &&
-          !getBoard().isEmptySpace(at)) {
-        return true;
-      }
-      return false;
+    Piece piece = getBoard().getPiece(at);
+    if (piece != null && 
+        isEnemy(piece) &&
+        !getBoard().isEmptySpace(at)) {
+      return true;
+        }
+    return false;
   }
 
-  public Location[] getMoves(Location at) {
+  public Location[] getMoves(boolean moving) {
     ArrayList<Location> arrayList = new ArrayList<>();
+
+    final Location at = getLocation();
 
     {
       // If pawn is at original position, we can move ahead two steps if it is not blocked
@@ -634,12 +687,12 @@ class Pawn extends Piece {
     }
 
     Location frontLeftLoc = new Location(at.getX() - 1, at.getY() + dir);
-    if (hasDiagonal(frontLeftLoc)) {
+    if (!moving || hasDiagonal(frontLeftLoc)) {
       arrayList.add(frontLeftLoc);
     }
 
     Location frontRightLoc = new Location(at.getX() + 1, at.getY() + dir);
-    if (hasDiagonal(frontRightLoc)) {
+    if (!moving || hasDiagonal(frontRightLoc)) {
       arrayList.add(frontRightLoc);
     }
 
@@ -648,8 +701,8 @@ class Pawn extends Piece {
 }
 
 class Rook extends Piece {
-  public Rook(COLOR color, Board board) {
-    super(board);
+  public Rook(COLOR color, Board board, Location loc) {
+    super(board, loc);
 
     switch (color) {
       case BLACK:
@@ -661,8 +714,10 @@ class Rook extends Piece {
     }
   }
 
-  public Location[] getMoves(Location at) {
+  public Location[] getMoves(boolean moving) {
     ArrayList<Location> arrayList = new ArrayList<>();
+
+    final Location at = getLocation();
 
     // Horizontal left
     for (int x = at.getX() - 1; x >= 0; --x) {
@@ -679,7 +734,7 @@ class Rook extends Piece {
     }
 
     // Horizontal right
-    for (int x = at.getX() + 1; x < getBoard().getWidth(); ++x) {
+    for (int x = at.getX() + 1; x < 8; ++x) {
       Location loc = new Location(x, at.getY());
       if (getBoard().isEmptySpace(loc)) {
         arrayList.add(loc);
@@ -691,7 +746,7 @@ class Rook extends Piece {
         break;
       }
     }
-    
+
 
     // Vertical top
     for (int y = at.getY() - 1; y >= 0; --y) {
@@ -708,7 +763,7 @@ class Rook extends Piece {
     }
 
     // Vertical bottom
-    for (int y = at.getY() + 1; y < getBoard().getHeight(); ++y) {
+    for (int y = at.getY() + 1; y < 8; ++y) {
       Location loc = new Location(at.getX(), y);
       if (getBoard().isEmptySpace(loc)) {
         arrayList.add(loc);
@@ -726,8 +781,8 @@ class Rook extends Piece {
 }
 
 class Knight extends Piece {
-  public Knight(COLOR color, Board board) {
-    super(board);
+  public Knight(COLOR color, Board board, Location loc) {
+    super(board, loc);
 
     switch (color) {
       case BLACK:
@@ -739,8 +794,10 @@ class Knight extends Piece {
     }
   }
 
-  public Location[] getMoves(Location at) {
+  public Location[] getMoves(boolean moving ) {
     ArrayList<Location> arrayList = new ArrayList<>();
+
+    final Location at = getLocation();
 
     final int x = at.getX();
     final int y = at.getY();
@@ -774,8 +831,8 @@ class Knight extends Piece {
 }
 
 class Bishop extends Piece {
-  public Bishop(COLOR color, Board board) {
-    super(board);
+  public Bishop(COLOR color, Board board, Location loc) {
+    super(board, loc);
 
     switch (color) {
       case BLACK:
@@ -787,8 +844,10 @@ class Bishop extends Piece {
     }
   }
 
-  public Location[] getMoves(Location at) {
+  public Location[] getMoves(boolean moving) {
     ArrayList<Location> arrayList = new ArrayList<>();
+    
+    final Location at = getLocation();
 
     // Diagonal top left
     for (int x = at.getX() - 1, y = at.getY() - 1; x >= 0 && y >= 0; --x, --y) {
@@ -805,7 +864,7 @@ class Bishop extends Piece {
     }
 
     // Diagonal bottom right
-    for (int x = at.getX() + 1, y = at.getY() + 1; x < getBoard().getWidth() && y < getBoard().getHeight(); ++x, ++y) {
+    for (int x = at.getX() + 1, y = at.getY() + 1; x < 8 && y < 8; ++x, ++y) {
       Location loc = new Location(x, y);
       if (getBoard().isEmptySpace(loc)) {
         arrayList.add(loc);
@@ -817,9 +876,9 @@ class Bishop extends Piece {
         break;
       }
     }
-    
+
     // Diagonal top right
-    for (int x = at.getX() + 1, y = at.getY() - 1; x < getBoard().getWidth() && y >= 0; ++x, --y) {
+    for (int x = at.getX() + 1, y = at.getY() - 1; x < 8 && y >= 0; ++x, --y) {
       Location loc = new Location(x, y);
       if (getBoard().isEmptySpace(loc)) {
         arrayList.add(loc);
@@ -833,7 +892,7 @@ class Bishop extends Piece {
     }
 
     // Diagonal bottom left
-    for (int x = at.getX() - 1, y = at.getY() + 1; x >= 0 && y < getBoard().getHeight(); --x, ++y) {
+    for (int x = at.getX() - 1, y = at.getY() + 1; x >= 0 && y < 8; --x, ++y) {
       Location loc = new Location(x, y);
       if (getBoard().isEmptySpace(loc)) {
         arrayList.add(loc);
@@ -851,8 +910,8 @@ class Bishop extends Piece {
 }
 
 class Queen extends Piece {
-  public Queen(COLOR color, Board board) {
-    super(board);
+  public Queen(COLOR color, Board board, Location loc) {
+    super(board, loc);
 
     switch (color) {
       case BLACK:
@@ -864,8 +923,10 @@ class Queen extends Piece {
     }
   }
 
-  public Location[] getMoves(Location at) {
+  public Location[] getMoves(boolean moving) {
     ArrayList<Location> arrayList = new ArrayList<>();
+
+    final Location at = getLocation();
 
     // Diagonal top left
     for (int x = at.getX() - 1, y = at.getY() - 1; x >= 0 && y >= 0; --x, --y) {
@@ -882,7 +943,7 @@ class Queen extends Piece {
     }
 
     // Diagonal bottom right
-    for (int x = at.getX() + 1, y = at.getY() + 1; x < getBoard().getWidth() && y < getBoard().getHeight(); ++x, ++y) {
+    for (int x = at.getX() + 1, y = at.getY() + 1; x < 8 && y < 8; ++x, ++y) {
       Location loc = new Location(x, y);
       if (getBoard().isEmptySpace(loc)) {
         arrayList.add(loc);
@@ -894,9 +955,9 @@ class Queen extends Piece {
         break;
       }
     }
-    
+
     // Diagonal top right
-    for (int x = at.getX() + 1, y = at.getY() - 1; x < getBoard().getWidth() && y >= 0; ++x, --y) {
+    for (int x = at.getX() + 1, y = at.getY() - 1; x < 8 && y >= 0; ++x, --y) {
       Location loc = new Location(x, y);
       if (getBoard().isEmptySpace(loc)) {
         arrayList.add(loc);
@@ -910,7 +971,7 @@ class Queen extends Piece {
     }
 
     // Diagonal bottom left
-    for (int x = at.getX() - 1, y = at.getY() + 1; x >= 0 && y < getBoard().getHeight(); --x, ++y) {
+    for (int x = at.getX() - 1, y = at.getY() + 1; x >= 0 && y < 8; --x, ++y) {
       Location loc = new Location(x, y);
       if (getBoard().isEmptySpace(loc)) {
         arrayList.add(loc);
@@ -938,7 +999,7 @@ class Queen extends Piece {
     }
 
     // Horizontal right
-    for (int x = at.getX() + 1; x < getBoard().getWidth(); ++x) {
+    for (int x = at.getX() + 1; x < 8; ++x) {
       Location loc = new Location(x, at.getY());
       if (getBoard().isEmptySpace(loc)) {
         arrayList.add(loc);
@@ -950,7 +1011,7 @@ class Queen extends Piece {
         break;
       }
     }
-    
+
 
     // Vertical top
     for (int y = at.getY() - 1; y >= 0; --y) {
@@ -967,7 +1028,7 @@ class Queen extends Piece {
     }
 
     // Vertical bottom
-    for (int y = at.getY() + 1; y < getBoard().getHeight(); ++y) {
+    for (int y = at.getY() + 1; y < 8; ++y) {
       Location loc = new Location(at.getX(), y);
       if (getBoard().isEmptySpace(loc)) {
         arrayList.add(loc);
@@ -984,8 +1045,8 @@ class Queen extends Piece {
 }
 
 class King extends Piece {
-  public King(COLOR color, Board board) {
-    super(board);
+  public King(COLOR color, Board board, Location loc) {
+    super(board, loc);
 
     switch (color) {
       case BLACK:
@@ -997,9 +1058,10 @@ class King extends Piece {
     }
   }
 
-  public Location[] getMoves(Location at) {
+  public Location[] getMoves(boolean moving) {
     ArrayList<Location> arrayList = new ArrayList<>();
 
+    final Location at = getLocation();
     final int x = at.getX();
     final int y = at.getY();
 
@@ -1030,7 +1092,6 @@ class King extends Piece {
     };
 
     for (Location loc : locations) {
-      //TODO: Check if any of this spaces are in check
       if (getBoard().isEmptySpace(loc)) {
         arrayList.add(loc);
       }
@@ -1058,7 +1119,7 @@ class Location {
   }
 
   public String toString() {
-    return x + " : " + y;
+    return "x: " + x + " y: " + y;
   }
 
   @Override
