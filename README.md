@@ -1,11 +1,6 @@
 ## Chess
 
-Implementing a simple text based Chess game in Java. The game is PvP and not completed with all the different chess rules. It also does not
-follow the algebra notation for chess moves.
-
-### Purpose
-
-I coded this game for one of my tuition class projects.
+This is a simple chess game that can be played on the command line as long as your terminal supports Unicode character.
 
 ### Visuals
 
@@ -29,3 +24,14 @@ I coded this game for one of my tuition class projects.
 ╚═╧═╧═╧═╧═╧═╧═╧═╝┊
 ╰a┈b┈c┈d┈e┈f┈g┈h┈╯
 ```
+
+### Current features
+
+1. Save/Load game to/from text file
+2. All pieces movements (Pawns, Rooks, Knights, Bishops, Queens, Kings)
+3. Win condition (When king is captured)
+4. Pawn promotion
+
+### Disclaimer
+
+I am not a chess expert and I just based the rules of chess based on memory as well as what I can find on the internet. Some of the rules may not be correct or implemented. This is just an exercise for me to build a simple chess game with Java.
