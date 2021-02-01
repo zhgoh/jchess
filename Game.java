@@ -1,3 +1,7 @@
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.Objects;
 import java.util.ArrayList;
@@ -5,6 +9,9 @@ import java.util.ArrayList;
 public class Game {
   public static void main(String[] args) {
     Game game = new Game();
+    if (args.length == 1) {
+      game.load(args[0]);
+    }
     game.play();
   }
 
@@ -17,6 +24,10 @@ public class Game {
   private COLOR turn;
 
   public Game() {
+    start();
+  }
+
+  private void start() {
     // Init board
     board = new Board();
     turn = COLOR.WHITE;
@@ -25,6 +36,8 @@ public class Game {
   public void play() {
     clearScreen();
     board.draw();
+
+    System.out.println("Type help to show all commands");
 
     Scanner sc = new Scanner(System.in);
     while (true) {
@@ -39,111 +52,135 @@ public class Game {
           break;
       }
 
-      System.out.print("Input move: ");
+      System.out.print("Input: ");
       String input = sc.nextLine();
 
       if (input.equals("help") || input.equals("h") || input.equals("?")) {
-        System.out.println("List of commands: (e)nd, (h)elp, (q)uit");
-        System.out.println("Input:            A1-B2 (to move from A1-B2)");
-        System.out.println("Castle:           0-0 (King side), 0-0-0 (Queen side).");
-        System.out.println("End:              End current turn.");
-        System.out.println("Help:             Show this help message.");
-        System.out.println("Quit:             Quit the chess app.");
+        System.out.println("List of commands: (e)nd, (h)elp, (l)oad, (q)uit, (r)estart, (s)ave");
+        System.out.println("input:            A1-B2 (to move from A1-B2)");
+        System.out.println("castle:           0-0 (King side), 0-0-0 (Queen side).");
+        System.out.println("save:             Save the game board");
+        System.out.println("end:              End current turn.");
+        System.out.println("help:             Show this help message.");
+        System.out.println("load:             Load chess game from text file.");
+        System.out.println("restart:          Restart the chess game to default (Not to the loaded state).");
+        System.out.println("quit:             Quit the chess game.");
         continue;
-      }
-      else if (input.equals("quit") || input.equals("q")) {
+      } else if (input.equals("restart") || input.equals("r")) {
+        start();
+      } else if (input.equals("quit") || input.equals("q")) {
         break;
       } else if (input.equals("end") || input.equals("e")) {
         endTurn();
+      } else if (input.equals("save") || input.equals("s")) {
+        System.out.print("Filename to save: ");
+        String fileName = sc.nextLine();
+
+        clearScreen();
+        board.draw();
+
+        if (!board.save(turn, fileName)) { 
+          System.out.println("File save fail");
+        }
         continue;
-      }
+      } else if (input.equals("load") || input.equals("l")) {
+        System.out.print("Filename to load: ");
+        String fileName = sc.nextLine();
 
-      // Check if valid input
-      String[] moves = input.split("-");
+        clearScreen();
+        board.draw();
 
-      // For checking of castling notation 0-0 or 0-0-0
-      int zero = 0;
-      for (String elem : moves) {
-        if (elem.equals("0")) {
-          ++zero;
+        if (!load(fileName)) { 
+          System.out.println("File load fail");
         }
-      }
-
-      // if (zero != moves.length && moves.length != 2) {
-      //   System.out.println("Invalid input, type help to learn more.");
-      //   continue;
-      // }
-
-      if (zero == 2 || zero == 3) {
-        if (!board.castle(turn, zero == 2 ? CASTLE.KING : CASTLE.QUEEN)) {
-          continue;
-        }
+        continue;
       } else {
-        if (moves.length < 2) {
-          System.out.println("Invalid input, type help to learn more.");
-          continue;
+        // Check if valid input
+        String[] moves = input.split("-");
+
+        // For checking of castling notation 0-0 or 0-0-0
+        int zero = 0;
+        for (String elem : moves) {
+          if (elem.equals("0")) {
+            ++zero;
+          }
         }
 
-        // Check if valid moves
-        Location from = board.translateMove(moves[0]);
-        Location to = board.translateMove(moves[1]);
+        // if (zero != moves.length && moves.length != 2) {
+        //   System.out.println("Invalid input, type help to learn more.");
+        //   continue;
+        // }
 
-        if (from == null || to == null) {
-          System.out.println("Invalid input, type help to learn more.");
-          continue;
-        }
-
-        Piece piece = board.getPiece(from);
-
-        if (piece == null) {
-          // Check if piece we are moving is a blank piece
-          System.out.println("Not a valid piece!");
-          continue;
-        }
-
-        if (piece.getColor() != turn) {
-          System.out.println("Not your turn yet!");
-          continue;
-        } else {
-          // Move pieces
-          if (board.movePiece(piece, to)) {
-            // Check for Pawn promotion
-            while (true) {
-              Pawn promoted = board.checkPromotion();
-
-              if (promoted == null) {
-                break;
-              }
-
-              System.out.println("you can choose one of the following");
-              System.out.print("[q]ueen,[b]ishop, [k]night, [r]ook: ");
-
-              input = sc.nextLine();
-              board.promotePawn(promoted, input);
-            }
-          } else {
+        if (zero == 2 || zero == 3) {
+          if (!board.castle(turn, zero == 2 ? CASTLE.KING : CASTLE.QUEEN)) {
             continue;
           }
-        }
+        } else {
+          if (moves.length < 2) {
+            System.out.println("Invalid input, type help to learn more.");
+            continue;
+          }
 
-        if (board.hasWinner()) {
-          switch (turn) {
-            case WHITE:
-              System.out.println("Congrats, white has win");
-              return;
+          // Check if valid moves
+          Location from = board.translateMove(moves[0]);
+          Location to = board.translateMove(moves[1]);
 
-            case BLACK:
-              System.out.println("Congrats, black has win");
-              return;
+          if (from == null || to == null) {
+            System.out.println("Invalid input, type help to learn more.");
+            continue;
+          }
+
+          Piece piece = board.getPiece(from);
+
+          if (piece == null) {
+            // Check if piece we are moving is a blank piece
+            System.out.println("Not a valid piece!");
+            continue;
+          }
+
+          if (piece.getColor() != turn) {
+            System.out.println("Not your turn yet!");
+            continue;
+          } else {
+            // Move pieces
+            if (board.movePiece(piece, to)) {
+              // Check for Pawn promotion
+              while (true) {
+                Pawn promoted = board.checkPromotion();
+
+                if (promoted == null) {
+                  break;
+                }
+
+                System.out.println("you can choose one of the following");
+                System.out.print("[q]ueen,[b]ishop, [k]night, [r]ook: ");
+
+                input = sc.nextLine();
+                board.promotePawn(promoted, input);
+              }
+            } else {
+              continue;
+            }
+          }
+
+          if (board.hasWinner()) {
+            switch (turn) {
+              case WHITE:
+                System.out.println("Congrats, white has win");
+                return;
+
+              case BLACK:
+                System.out.println("Congrats, black has win");
+                return;
+            }
           }
         }
+        endTurn();
       }
-
-      endTurn();
     }
   }
 
-private void endTurn() {
+  private void endTurn() {
     switch (turn) {
       case WHITE:
         turn = COLOR.BLACK;
@@ -156,8 +193,16 @@ private void endTurn() {
 
     clearScreen();
     // Draw board
-    // https://qwerty.dev/chess-symbols-to-copy-and-paste/
     board.draw();
+  }
+
+  private boolean load(String fileName) {
+    COLOR loadTurn = board.load(fileName);
+    if (loadTurn == null)
+      return false;
+
+    turn = loadTurn;
+    return true;
   }
 }
 
@@ -210,10 +255,9 @@ class Board {
         continue;
       }
 
-      if (piece.getType() == PIECE_TYPE.BLACK_KING ||
-          piece.getType() == PIECE_TYPE.WHITE_KING) {
+      if (piece.getType() == PIECE_TYPE.BLACK_KING || piece.getType() == PIECE_TYPE.WHITE_KING) {
         ++count;
-          }
+      }
     }
 
     return count == 1;
@@ -225,14 +269,12 @@ class Board {
         continue;
       }
 
-      if (piece.getType() == PIECE_TYPE.BLACK_PAWN || 
-          piece.getType() == PIECE_TYPE.WHITE_PAWN) {
-        if (piece.getLocation().getY() == 8 ||
-            piece.getLocation().getY() == 0) {
+      if (piece.getType() == PIECE_TYPE.BLACK_PAWN || piece.getType() == PIECE_TYPE.WHITE_PAWN) {
+        if (piece.getLocation().getY() == 8 || piece.getLocation().getY() == 0) {
           System.out.println("Pawn Promotion");
           return (Pawn)piece;
-            }
-          }
+        }
+      }
     }
 
     return null;
@@ -263,13 +305,12 @@ class Board {
       for (Location loc : locations) {
         if (loc.equals(to)) {
           // If piece is king, check if destination is in check
-          if (piece.getType() == PIECE_TYPE.BLACK_KING ||
-              piece.getType() == PIECE_TYPE.WHITE_KING) {
+          if (piece.getType() == PIECE_TYPE.BLACK_KING || piece.getType() == PIECE_TYPE.WHITE_KING) {
             if (isCheck(piece.getColor(), to)) {
               System.out.println("King is moving to checked position");
               return false;
             }
-              }
+          }
 
           Piece destination = getPiece(to);
           if (destination != null) {
@@ -559,7 +600,7 @@ class Board {
   }
 
   private Piece getPieceBy(COLOR color, PIECE_TYPE type) {
-    for (Piece piece : pieces)  {
+    for (Piece piece : pieces) {
       if (piece == null) {
         continue;
       }
@@ -663,6 +704,82 @@ class Board {
     }
     return false;
   }
+
+  public boolean save(COLOR turn, String fileName) {
+    try (PrintWriter writer = new PrintWriter(new FileWriter(fileName))){
+      writer.printf("%s\r\n", turn);
+      writer.printf("%d\r\n", pieceCount());
+
+      for (Piece piece : pieces) {
+        if (piece == null) {
+          continue;
+        }
+        writer.printf("%s \r\n%d %d\r\n", piece.getType(), piece.getLocation().getX(), piece.getLocation().getY());
+      }
+      System.out.println("Board saved as " + fileName);
+      return true;
+    } catch (IOException e) {
+      System.out.println("An error occurred.");
+      e.printStackTrace();
+    }
+    return false;
+  }
+
+  public COLOR load(String fileName) {
+    PieceFactory factory = new PieceFactory(this);
+
+    COLOR turn = null;
+    try (Scanner scanner = new Scanner(new FileReader(fileName))){
+      if (scanner.hasNext()) {
+        String color = scanner.next();
+        turn = COLOR.valueOf(color.toUpperCase());
+      }
+
+      int count = 0;
+      if (scanner.hasNextInt()) {
+        count = scanner.nextInt();
+      }
+
+      pieces = new Piece[count];
+
+      for (int i = 0; i < count; ++i) {
+        if (scanner.hasNext()) {
+          String piece = scanner.next();
+          PIECE_TYPE type = PIECE_TYPE.valueOf(piece.toUpperCase());
+
+          int x = 0;
+          if (scanner.hasNextInt()) {
+            x = scanner.nextInt();
+          }
+
+          int y = 0;
+          if (scanner.hasNextInt()) {
+            y = scanner.nextInt();
+          }
+
+          pieces[i] = factory.getPiece(type, new Location(x, y));
+        }
+      }
+
+      System.out.println("Board loaded from " + fileName);
+    } catch (IOException e) {
+      System.out.println("An error occurred.");
+      e.printStackTrace();
+    }
+
+    return turn;
+  }
+
+  private int pieceCount() {
+    int count = 0;
+    for (Piece piece : pieces) {
+      if (piece == null) {
+        continue;
+      }
+      ++count;
+    }
+    return count;
+  }
 }
 
 
@@ -742,11 +859,9 @@ class Pawn extends Piece {
 
   private boolean hasDiagonal(Location at) {
     Piece piece = getBoard().getPiece(at);
-    if (piece != null && 
-        isEnemy(piece) &&
-        !getBoard().isEmptySpace(at)) {
+    if (piece != null && isEnemy(piece) && !getBoard().isEmptySpace(at)) {
       return true;
-        }
+    }
     return false;
   }
 
@@ -757,8 +872,7 @@ class Pawn extends Piece {
 
     {
       // If pawn is at original position, we can move ahead two steps if it is not blocked
-      if (getColor() == COLOR.WHITE && at.getY() == 6 ||
-          getColor() == COLOR.BLACK && at.getY() == 1) {
+      if (getColor() == COLOR.WHITE && at.getY() == 6 || getColor() == COLOR.BLACK && at.getY() == 1) {
 
         Location frontLoc = new Location(at.getX(), at.getY() + dir);
         Location frontTwoLoc = new Location(at.getX(), at.getY() + dir + dir);
@@ -766,7 +880,7 @@ class Pawn extends Piece {
         if (getBoard().isEmptySpace(frontLoc) && getBoard().isEmptySpace(frontTwoLoc)) {
           arrayList.add(frontTwoLoc);
         }
-          }
+      }
     }
 
     {
@@ -1227,5 +1341,43 @@ class Location {
   @Override
   public int hashCode() {
     return Objects.hash(x, y);
+  }
+}
+
+class PieceFactory {
+  private Board board;
+
+  public PieceFactory(Board board) {
+    this.board = board;
+  }
+
+  public Piece getPiece(PIECE_TYPE type, Location loc) {
+    switch(type) {
+      case WHITE_PAWN:
+        return new Pawn(COLOR.WHITE, board, -1, loc);
+      case WHITE_ROOK:
+        return new Rook(COLOR.WHITE, board, loc);
+      case WHITE_KNIGHT:
+        return new Knight(COLOR.WHITE, board, loc);
+      case WHITE_BISHOP:
+        return new Bishop(COLOR.WHITE, board, loc);
+      case WHITE_QUEEN:
+        return new Queen(COLOR.WHITE, board, loc);
+      case WHITE_KING:
+        return new King(COLOR.WHITE, board, loc);
+      case BLACK_PAWN:
+        return new Pawn(COLOR.BLACK, board, 1, loc);
+      case BLACK_ROOK:
+        return new Rook(COLOR.BLACK, board, loc);
+      case BLACK_KNIGHT:
+        return new Knight(COLOR.BLACK, board, loc);
+      case BLACK_BISHOP:
+        return new Bishop(COLOR.BLACK, board, loc);
+      case BLACK_QUEEN:
+        return new Queen(COLOR.BLACK, board, loc);
+      case BLACK_KING:
+        return new King(COLOR.BLACK, board, loc);
+    }
+    return null;
   }
 }
