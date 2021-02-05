@@ -1,6 +1,6 @@
 ## Chess
 
-This is a simple chess game that can be played on the command line as long as your terminal supports Unicode character.
+This is a simple chess game that can be played on the command line. (Only uaing ASCII characters)
 
 ### Visuals
 
