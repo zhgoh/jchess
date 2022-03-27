@@ -1,18 +1,30 @@
+ifdef OS
+	RM = del /Q
+	FixPath = $(subst /,\,$1)
+	CLS = cls
+else
+   ifeq ($(shell uname), Linux)
+		RM = rm -f
+		FixPath = $1
+		CLS = clear
+   endif
+endif
+
 all: game
-	clear
+	$(CLS)
 	java -cp bin Game
 
 game: Game.java
 	javac Game.java -d bin
 
 load: game
-	clear
+	$(CLS)
 	java -cp bin Game board.txt
 
 jar: bin/*.class game
-	# jar cvf chess.jar *.class
+# jar cvf chess.jar *.class
 	cd bin && jar cfm chess.jar manifest.txt *.class
 
 clean:
-	rm -rf bin/*.class
-	rm bin/*.jar
+	$(RM) -rf bin/*.class
+	$(RM) bin/*.jar

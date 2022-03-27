@@ -1,6 +1,8 @@
 ## Chess
 
-This is a simple chess game that can be played on the command line. (Only uaing ASCII characters)
+This is a simple chess game that can be played on the command line. (Only using ASCII characters)
+
+![alt text](Screenshots/Screenshots.PNG "Screenshots")
 
 ### Visuals
 
