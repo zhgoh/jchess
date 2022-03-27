@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.util.ArrayList;
 
 public class Game {
+    public static PrintWriter stdout;
+
     public static void main(String[] args) {
         Game game = new Game();
         if (args.length == 1) {
@@ -36,7 +38,7 @@ public class Game {
     public void play() {
         clearScreen();
         board.draw();
-
+        
         System.out.println("Type help to show all commands");
 
         Scanner sc = new Scanner(System.in);
@@ -206,18 +208,30 @@ public class Game {
 }
 
 enum PieceType {
-    BLACK_PAWN   ('p'),
-    WHITE_PAWN   ('P'),
-    BLACK_ROOK   ('r'),
-    WHITE_ROOK   ('R'),
-    BLACK_KNIGHT ('n'),
-    WHITE_KNIGHT ('N'),
-    BLACK_BISHOP ('b'),
-    WHITE_BISHOP ('B'),
-    BLACK_QUEEN  ('q'),
-    WHITE_QUEEN  ('Q'),
-    BLACK_KING   ('k'),
-    WHITE_KING   ('K');
+    // BLACK_PAWN   ('p'),
+    // WHITE_PAWN   ('P'),
+    // BLACK_ROOK   ('r'),
+    // WHITE_ROOK   ('R'),
+    // BLACK_KNIGHT ('n'),
+    // WHITE_KNIGHT ('N'),
+    // BLACK_BISHOP ('b'),
+    // WHITE_BISHOP ('B'),
+    // BLACK_QUEEN  ('q'),
+    // WHITE_QUEEN  ('Q'),
+    // BLACK_KING   ('k'),
+    // WHITE_KING   ('K');
+    BLACK_PAWN   ('♟'),
+    WHITE_PAWN   ('♙'),
+    BLACK_ROOK   ('♜'),
+    WHITE_ROOK   ('♖'),
+    BLACK_KNIGHT ('♞'),
+    WHITE_KNIGHT ('♘'),
+    BLACK_BISHOP ('♝'),
+    WHITE_BISHOP ('♗'),
+    BLACK_QUEEN  ('♛'),
+    WHITE_QUEEN  ('♕'),
+    BLACK_KING   ('♚'),
+    WHITE_KING   ('♔');
 
     private final char icon;
     PieceType(char icon) {

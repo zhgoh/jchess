@@ -2,20 +2,23 @@ ifdef OS
 	RM = del /Q
 	FixPath = $(subst /,\,$1)
 	CLS = cls
+	SET_UNICODE = chcp 65001
 else
    ifeq ($(shell uname), Linux)
 		RM = rm -f
 		FixPath = $1
 		CLS = clear
+		SET_UNICODE =
    endif
 endif
 
 all: game
+	$(SET_UNICODE)
 	$(CLS)
-	java -cp bin Game
+	java -Dfile.encoding=UTF8 -cp bin Game
 
 game: Game.java
-	javac Game.java -d bin
+	javac -encoding utf8 Game.java -d bin
 
 load: game
 	$(CLS)
@@ -26,5 +29,5 @@ jar: bin/*.class game
 	cd bin && jar cfm chess.jar manifest.txt *.class
 
 clean:
-	$(RM) -rf bin/*.class
-	$(RM) bin/*.jar
+	$(RM) $(call FixPath, bin/*.class)
+	$(RM) $(call FixPath, bin/*.jar)

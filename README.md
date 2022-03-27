@@ -1,6 +1,6 @@
 ## Chess
 
-This is a simple chess game that can be played on the command line. (Only using ASCII characters)
+This is a simple chess game that can be played on the command line.
 
 ![alt text](Screenshots/Screenshots.PNG "Screenshots")
 
@@ -8,14 +8,14 @@ This is a simple chess game that can be played on the command line. (Only using 
 
 ```
   a b c d e f g h
-8 r n b q k b n r 8
-7 p p p p p p p p 7      Black side
+8 ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜ 8
+7 ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟ 7
 6 . . . . . . . . 6
 5 . . . . . . . . 5
 4 . . . . . . . . 4
 3 . . . . . . . . 3
-2 P P P P P P P P 2      White side
-1 R N B Q K B N R 1
+2 ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙ 2
+1 ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖ 1
   a b c d e f g h
 ```
 
@@ -27,6 +27,15 @@ This is a simple chess game that can be played on the command line. (Only using 
 4. Pawn promotion
 5. Castling
 6. En passant
+
+### Help: Unicode symbols not displaying properly in my Windows Terminal
+
+Firstly, I have only tested this implementation on Windows Terminal with the following settings,
+1. Make sure chcp 65001 is run before running the game.
+2. Make sure the font supports the unicode characters, I am using Dejavu sans mono, to see if the font supports the symbols on Windows, go to, Start > Character Map, and
+select the font used in the Windows Terminal (Note: I am using Windows Terminal with powershell), search for chess under advanced. See below screenshot
+
+![alt text](Screenshots/CharacterMap.PNG "Screenshots")
 
 ### Disclaimer
 
