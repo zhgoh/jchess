@@ -94,12 +94,11 @@ public class Game {
                     System.out.print("Filename to load: ");
                     String fileName = sc.nextLine();
 
-                    clearScreen();
-                    board.draw();
-
                     if (!load(fileName)) {
                         System.out.println("File load fail");
                     }
+                    clearScreen();
+                    board.draw();
                     break;
                 }
                 default:
@@ -206,19 +205,27 @@ public class Game {
     }
 }
 
-enum PIECE_TYPE {
-    BLACK_PAWN,
-    WHITE_PAWN,
-    BLACK_ROOK,
-    WHITE_ROOK,
-    BLACK_KNIGHT,
-    WHITE_KNIGHT,
-    BLACK_BISHOP,
-    WHITE_BISHOP,
-    BLACK_QUEEN,
-    WHITE_QUEEN,
-    BLACK_KING,
-    WHITE_KING
+enum PieceType {
+    BLACK_PAWN   ('p'),
+    WHITE_PAWN   ('P'),
+    BLACK_ROOK   ('r'),
+    WHITE_ROOK   ('R'),
+    BLACK_KNIGHT ('n'),
+    WHITE_KNIGHT ('N'),
+    BLACK_BISHOP ('b'),
+    WHITE_BISHOP ('B'),
+    BLACK_QUEEN  ('q'),
+    WHITE_QUEEN  ('Q'),
+    BLACK_KING   ('k'),
+    WHITE_KING   ('K');
+
+    private final char icon;
+    PieceType(char icon) {
+        this.icon = icon;
+    }
+    public char getIcon() {
+        return this.icon;
+    }
 }
 
 enum COLOR {
@@ -250,7 +257,7 @@ class Board {
                 continue;
             }
 
-            if (piece.getType() == PIECE_TYPE.BLACK_KING || piece.getType() == PIECE_TYPE.WHITE_KING) {
+            if (piece.getType() == PieceType.BLACK_KING || piece.getType() == PieceType.WHITE_KING) {
                 ++count;
             }
         }
@@ -264,7 +271,7 @@ class Board {
                 continue;
             }
 
-            if (piece.getType() == PIECE_TYPE.BLACK_PAWN || piece.getType() == PIECE_TYPE.WHITE_PAWN) {
+            if (piece.getType() == PieceType.BLACK_PAWN || piece.getType() == PieceType.WHITE_PAWN) {
                 if (piece.getLocation().getY() == 8 || piece.getLocation().getY() == 0) {
                     System.out.println("Pawn Promotion");
                     return (Pawn)piece;
@@ -300,10 +307,27 @@ class Board {
             for (Location loc : locations) {
                 if (loc.equals(to)) {
                     // If piece is king, check if destination is in check
-                    if (piece.getType() == PIECE_TYPE.BLACK_KING || piece.getType() == PIECE_TYPE.WHITE_KING) {
+                    if (piece.getType() == PieceType.BLACK_KING || piece.getType() == PieceType.WHITE_KING) {
                         if (isCheck(piece.getColor(), to)) {
                             System.out.println("King is moving to checked position");
                             return false;
+                        }
+                    }
+
+                    if (piece.getType() == PieceType.BLACK_PAWN || piece.getType() == PieceType.WHITE_PAWN) {
+                        // Check for En Passant
+                        // Check if any pawn in between 2 pawns
+                        int dir = piece.getType() == PieceType.BLACK_PAWN ? -1 : 1;
+                        Location back = new Location(loc.getX(), loc.getY() + (2 * dir));
+                        Piece backPiece = getPiece(back);
+                        boolean hasBack = backPiece != null && piece.isSameType(backPiece);
+
+                        Location mid = new Location(loc.getX(), loc.getY() + dir);
+                        Piece midPiece = getPiece(mid);
+                        boolean hasMid = midPiece != null && piece.isEnemy(midPiece);
+
+                        if (hasMid && hasBack) {
+                            removePiece(midPiece);
                         }
                     }
 
@@ -437,7 +461,7 @@ class Board {
             if (piece != null) {
                 Location loc = piece.getLocation();
                 if (loc != null) {
-                    boards[loc.getY() * 8 + loc.getX()] = piece.getIcon();
+                    boards[loc.getY() * 8 + loc.getX()] = piece.getType().getIcon();
                 }
             }
         }
@@ -635,7 +659,7 @@ class Board {
             for (int i = 0; i < count; ++i) {
                 if (scanner.hasNext()) {
                     String piece = scanner.next();
-                    PIECE_TYPE type = PIECE_TYPE.valueOf(piece.toUpperCase());
+                    PieceType type = PieceType.valueOf(piece.toUpperCase());
 
                     int x = 0;
                     if (scanner.hasNextInt()) {
@@ -672,10 +696,8 @@ class Board {
     }
 }
 
-
 abstract class Piece {
-    private PIECE_TYPE type;
-    private char icon;
+    private PieceType type;
     private COLOR color;
     private final Board board;
     private boolean hasMoved;
@@ -694,12 +716,8 @@ abstract class Piece {
         hasMoved = true;
     }
 
-    public PIECE_TYPE getType() {
+    public PieceType getType() {
         return type;
-    }
-
-    public char getIcon() {
-        return icon;
     }
 
     public COLOR getColor() {
@@ -714,9 +732,8 @@ abstract class Piece {
         return location;
     }
 
-    public void set(PIECE_TYPE type, char icon, COLOR color) {
+    public void set(PieceType type, COLOR color) {
         this.type = type;
-        this.icon = icon;
         this.color = color;
     }
 
@@ -724,8 +741,17 @@ abstract class Piece {
         return color != piece.color;
     }
 
+    public boolean isSameType(Piece piece) {
+        return this.type == piece.getType();
+    }
+
     public boolean moved() {
         return hasMoved;
+    }
+
+    public String toString() {
+        return "Loc: " + location + " Piece Type: " + type + " Color: " + color +
+            " Has Moved: " + hasMoved;
     }
 }
 
@@ -736,8 +762,8 @@ class Pawn extends Piece {
         super(board, loc);
 
         switch (color) {
-            case BLACK -> set(PIECE_TYPE.BLACK_PAWN, 'p', COLOR.BLACK);
-            case WHITE -> set(PIECE_TYPE.WHITE_PAWN, 'P', COLOR.WHITE);
+            case BLACK -> set(PieceType.BLACK_PAWN, COLOR.BLACK);
+            case WHITE -> set(PieceType.WHITE_PAWN, COLOR.WHITE);
         }
 
         this.dir = dir;
@@ -746,6 +772,20 @@ class Pawn extends Piece {
     private boolean hasDiagonal(Location at) {
         Piece piece = getBoard().getPiece(at);
         return piece != null && isEnemy(piece) && !getBoard().isEmptySpace(at);
+    }
+
+    private boolean hasHorizontal(Location at) {
+        Piece piece = getBoard().getPiece(at);
+        return piece != null && isEnemy(piece) && !getBoard().isEmptySpace(at);
+    }
+
+    private boolean canEnPassant(Location front, Location side) {
+        Location back = new Location(side.getX(), side.getY() - dir);
+
+        // Check if there is pawn blocking
+        Piece piece = getBoard().getPiece(back);
+        boolean isValidPawn = piece != null && isSameType(piece);
+        return isValidPawn && getBoard().isEmptySpace(front);
     }
 
     public Location[] getMoves(boolean moving) {
@@ -767,20 +807,28 @@ class Pawn extends Piece {
         }
 
         {
+            // Moving front
             Location frontLoc = new Location(at.getX(), at.getY() + dir);
             if (getBoard().isEmptySpace(frontLoc)) {
                 arrayList.add(frontLoc);
             }
         }
 
-        Location frontLeftLoc = new Location(at.getX() - 1, at.getY() + dir);
-        if (!moving || hasDiagonal(frontLeftLoc)) {
-            arrayList.add(frontLeftLoc);
+        
+        // Diagonals
+        {
+            Location frontLeftLoc = new Location(at.getX() - 1, at.getY() + dir);
+            Location leftLoc = new Location(at.getX() - 1, at.getY());
+            if (!moving || hasDiagonal(frontLeftLoc) || canEnPassant(frontLeftLoc, leftLoc)) {
+                arrayList.add(frontLeftLoc);
+            }
         }
-
-        Location frontRightLoc = new Location(at.getX() + 1, at.getY() + dir);
-        if (!moving || hasDiagonal(frontRightLoc)) {
-            arrayList.add(frontRightLoc);
+        {
+            Location frontRightLoc = new Location(at.getX() + 1, at.getY() + dir);
+            Location rightLoc = new Location(at.getX() + 1, at.getY());
+            if (!moving || hasDiagonal(frontRightLoc) || canEnPassant(frontRightLoc, rightLoc)) {
+                arrayList.add(frontRightLoc);
+            }
         }
 
         return arrayList.toArray(new Location[0]);
@@ -792,8 +840,8 @@ class Rook extends Piece {
         super(board, loc);
 
         switch (color) {
-            case BLACK -> set(PIECE_TYPE.BLACK_ROOK, 'r', COLOR.BLACK);
-            case WHITE -> set(PIECE_TYPE.WHITE_ROOK, 'R', COLOR.WHITE);
+            case BLACK -> set(PieceType.BLACK_ROOK, COLOR.BLACK);
+            case WHITE -> set(PieceType.WHITE_ROOK, COLOR.WHITE);
         }
     }
 
@@ -868,8 +916,8 @@ class Knight extends Piece {
         super(board, loc);
 
         switch (color) {
-            case BLACK -> set(PIECE_TYPE.BLACK_KNIGHT, 'n', COLOR.BLACK);
-            case WHITE -> set(PIECE_TYPE.WHITE_KNIGHT, 'N', COLOR.WHITE);
+            case BLACK -> set(PieceType.BLACK_KNIGHT, COLOR.BLACK);
+            case WHITE -> set(PieceType.WHITE_KNIGHT, COLOR.WHITE);
         }
     }
 
@@ -914,8 +962,8 @@ class Bishop extends Piece {
         super(board, loc);
 
         switch (color) {
-            case BLACK -> set(PIECE_TYPE.BLACK_BISHOP, 'b', COLOR.BLACK);
-            case WHITE -> set(PIECE_TYPE.WHITE_BISHOP, 'B', COLOR.WHITE);
+            case BLACK -> set(PieceType.BLACK_BISHOP, COLOR.BLACK);
+            case WHITE -> set(PieceType.WHITE_BISHOP, COLOR.WHITE);
         }
     }
 
@@ -989,8 +1037,8 @@ class Queen extends Piece {
         super(board, loc);
 
         switch (color) {
-            case BLACK -> set(PIECE_TYPE.BLACK_QUEEN, 'q', COLOR.BLACK);
-            case WHITE -> set(PIECE_TYPE.WHITE_QUEEN, 'Q', COLOR.WHITE);
+            case BLACK -> set(PieceType.BLACK_QUEEN, COLOR.BLACK);
+            case WHITE -> set(PieceType.WHITE_QUEEN, COLOR.WHITE);
         }
     }
 
@@ -1120,8 +1168,8 @@ class King extends Piece {
         super(board, loc);
 
         switch (color) {
-            case BLACK -> set(PIECE_TYPE.BLACK_KING, 'k', COLOR.BLACK);
-            case WHITE -> set(PIECE_TYPE.WHITE_KING, 'K', COLOR.WHITE);
+            case BLACK -> set(PieceType.BLACK_KING, COLOR.BLACK);
+            case WHITE -> set(PieceType.WHITE_KING, COLOR.WHITE);
         }
     }
 
@@ -1214,7 +1262,7 @@ class PieceFactory {
         this.board = board;
     }
 
-    public Piece getPiece(PIECE_TYPE type, Location loc) {
+    public Piece getPiece(PieceType type, Location loc) {
         return switch (type) {
             case WHITE_PAWN -> new Pawn(COLOR.WHITE, board, -1, loc);
             case WHITE_ROOK -> new Rook(COLOR.WHITE, board, loc);

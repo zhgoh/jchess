@@ -23,8 +23,10 @@ This is a simple chess game that can be played on the command line. (Only using 
 
 1. Save/Load game to/from text file
 2. All pieces movements (Pawns, Rooks, Knights, Bishops, Queens, Kings)
-3. Win condition (When king is captured)
+3. Win condition ala Check (When king is captured)
 4. Pawn promotion
+5. Castling
+6. En passant
 
 ### Disclaimer
 
